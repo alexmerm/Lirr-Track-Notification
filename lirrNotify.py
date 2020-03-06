@@ -27,7 +27,6 @@ def getTrains():
 def selectTrain(train_id):
     df = pd.DataFrame(getTrains()).set_index('TRAIN_ID')
     #check if id valid
-    print("Error: Train ID ", train_id, " not valid")
     #while loop
     track = ''
     while(track == ''):
@@ -36,12 +35,19 @@ def selectTrain(train_id):
             track = df.loc[train_id]['TRACK']
             if(track == ''):
                 print("Track not assigned yet. Try again in 5 seconds")
-                time.sleep(5)
+                time.sleep(10)
         else:
-            print('error: TRAIN_ID not found in index, continuing')
+            print('error: TRAIN_ID,',train_id,', not found in index, continuing')
             print(df)
     #notify
-    print(df.loc['TRAIN_ID']['descrip'], "is on track ", track)
+    string = df.loc[train_id]['descrip'] + " is on Track "+ track
+    print(string)
+    #send notification using pushover
+    data = {'token' : '***REMOVED***',
+            'user' : '***REMOVED***',
+            'title' :'Track ' + track,
+            'message' : string}
+    resp = requests.post('https://api.pushover.net/1/messages.json',params=data)
 
 def waitForNext():
     df = pd.DataFrame(getTrains()).set_index('TRAIN_ID')
