@@ -5,6 +5,11 @@ from pprint import pprint
 import time
 import pandas as pd
 
+
+
+
+
+
 #raw data request
 def getData():
     resp = requests.get('https://traintime.lirr.org/api/Departure?loc=NYK')
@@ -20,17 +25,19 @@ def getTrains():
     for train in trains:
         train['time'] = parse(train['SCHED'])
         train['descrip'] =  train['time'].strftime('%I:%M %p') + ' To ' + train['DEST']
-    return trains
+    df = pd.DataFrame(trains).set_index('TRAIN_ID')
+    return df
+
 
 
 
 def selectTrain(train_id):
-    df = pd.DataFrame(getTrains()).set_index('TRAIN_ID')
+    df = getTrains()
     #check if id valid
     #while loop
     track = ''
     while(track == ''):
-        df = pd.DataFrame(getTrains()).set_index('TRAIN_ID')
+        df = getTrains()
         if(train_id in df.index ):
             track = df.loc[train_id]['TRACK']
             if(track == ''):
@@ -50,7 +57,7 @@ def selectTrain(train_id):
     resp = requests.post('https://api.pushover.net/1/messages.json',params=data)
 
 def waitForNext():
-    df = pd.DataFrame(getTrains()).set_index('TRAIN_ID')
+    df = getTrains()
     next = df[df['TRACK'] == ''].iloc[0]
     print(next)
     train_id = next.name
@@ -59,8 +66,7 @@ def waitForNext():
 
 
 def main():
-    trains = getTrains()
-    df = pd.DataFrame(trains)
+    df = getTrains()
     print(df)
     waitForNext()
 
