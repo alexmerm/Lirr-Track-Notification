@@ -7,6 +7,7 @@ import pandas as pd
 from flask import *
 import threading
 import datetime
+import pytz
 
 
 
@@ -32,9 +33,10 @@ def getTrains():
     resp = requests.get('https://traintime.lirr.org/api/Departure?loc=NYK')
     data = json.loads(resp.text)
     trains = data['TRAINS']
+    tz = pytz.timezone("America/New_York")
     #Convert time to time
     for train in trains:
-        train['time'] = parse(train['SCHED'])
+        train['time'] = tz.localize(parse(train['SCHED']))
         train['destination'] = stations.loc[train['DEST']]
         train['descrip'] =  train['time'].strftime('%I:%M %p') + ' towards ' + train['destination']
     df = pd.DataFrame(trains).set_index('TRAIN_ID')
@@ -63,8 +65,10 @@ def selectTrainAPI(train_id):
         #Check if train is in more than 40 min
         depart = df.loc[train_id]['time']
         print("departireTime : ", depart.isoformat())
-        timeDiff = depart - datetime.datetime.now()
-        print("Curr time : ", datetime.datetime.now().isoformat())
+        tz = pytz.timezone("America/New_York")
+        now = datetime.datetime.now(tz = tz)
+        timeDiff = depart - now
+        print("Curr time : ", now.isoformat())
         print("Time Diff", timeDiff)
         if(timeDiff > datetime.timedelta(hours=1)):
             print("Train leaves over an hour from now. We're not doing this sis")
