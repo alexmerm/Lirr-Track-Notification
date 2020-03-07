@@ -62,8 +62,11 @@ def selectTrainAPI(train_id):
     if(train_id in df.index):
         #Check if train is in more than 40 min
         depart = df.loc[train_id]['time']
-
-        if(depart - datetime.datetime.now() > datetime.timedelta(hours=1)):
+        print("departireTime : ", depart.isoformat())
+        timeDiff = depart - datetime.datetime.now()
+        print("Curr time : ", datetime.datetime.now().isoformat())
+        print("Time Diff", timeDiff)
+        if(timeDiff > datetime.timedelta(hours=1)):
             print("Train leaves over an hour from now. We're not doing this sis")
             sendNotification('Error: Train leaves too long from now','Please request again less than an hour before departure.')
             return {'status':403,'message':'Error: Train leaves over an hour from now. Please Select and Earlier train'},403
