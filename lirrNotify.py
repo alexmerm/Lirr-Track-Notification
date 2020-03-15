@@ -57,8 +57,17 @@ def getTrainsRest():
 
 
 
-@app.route("/selectTrain/<train_id>")
-def selectTrainAPI(train_id):
+@app.route("/selectTrain",methods=['POST','GET'])
+def selectTrainAPI():
+    #put in check to see  tingz there +valid
+    body = request.get_json()
+    train_id = body['train_id']
+    push_key = body['push_key']
+    print("New selecTrains Request with content:")
+    print("train_id :",train_id)
+    print("push_key :", push_key)
+
+
     #check if train_id is valid
     df = getTrains()
     if(train_id in df.index):
@@ -72,19 +81,19 @@ def selectTrainAPI(train_id):
         print("Time Diff", timeDiff)
         if(timeDiff > datetime.timedelta(hours=1)):
             print("Train leaves over an hour from now. We're not doing this sis")
-            sendNotification('Error: Train leaves too long from now','Please request again less than an hour before departure.')
+            sendNotification(push_key,'Error: Train leaves too long from now','Please request again less than an hour before departure.')
             return {'status':403,'message':'Error: Train leaves over an hour from now. Please Select and Earlier train'},403
 
 
 
-        t = threading.Thread(target=selectTrain,args=(train_id,))
+        t = threading.Thread(target=selectTrain,args=(train_id,push_key,))
         t.start()
         return {'status':200,'message' : 'Successfully selected train. Notification setup.' },200
     else:
         return {'status':400,'message': 'Error: train_id not valid'},400
 
 
-def selectTrain(train_id):
+def selectTrain(train_id,push_key):
     df = getTrains()
     #error count
     errorCount = 0
@@ -110,13 +119,14 @@ def selectTrain(train_id):
     string = df.loc[train_id]['descrip'] + " is on Track "+ track
     print(string)
     #send notification using pushover
-    sendNotification('Track ' + track,string)
+    sendNotification(push_key,'Track ' + track,string)
 
 
 #send notification using pushover
-def sendNotification(title,message):
+#            'user' : '***REMOVED***'
+def sendNotification(push_key,title,message):
     data = {'token' : '***REMOVED***',
-            'user' : '***REMOVED***',
+            'user' : push_key,
             'title' : title,
             'message' : message}
     resp = requests.post('https://api.pushover.net/1/messages.json',params=data)
