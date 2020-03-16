@@ -15,7 +15,7 @@ import pytz
 app = Flask(__name__)
 
 
-
+PUSHOVER_TOKEN = 'PUSHOVER TOKEN'
 
 def loadStationInfo():
     #resp = requests.get('https://traintime.lirr.org/api/Stations-All')
@@ -123,9 +123,8 @@ def selectTrain(train_id,push_key):
 
 
 #send notification using pushover
-#            'user' : '***REMOVED***'
 def sendNotification(push_key,title,message):
-    data = {'token' : '***REMOVED***',
+    data = {'token' : PUSHOVER_TOKEN,
             'user' : push_key,
             'title' : title,
             'message' : message}
